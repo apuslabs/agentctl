@@ -1,0 +1,19 @@
+ARG BASE=debian:12-slim
+FROM ${BASE}
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl xz-utils && rm -rf /var/lib/apt/lists/*
+RUN arch="${TARGETARCH:-$(uname -m)}"; \
+    case "$arch" in amd64|x86_64) node_arch=x64;; arm64|aarch64) node_arch=arm64;; *) echo "Unsupported Docker architecture: $arch" >&2; exit 1;; esac; \
+    curl -fsSLo /tmp/node.tar.xz "https://nodejs.org/dist/v22.22.0/node-v22.22.0-linux-$node_arch.tar.xz" && \
+    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.json ./
+RUN npm ci --ignore-scripts
+COPY src ./src
+COPY scripts/scenario.sh ./scripts/scenario.sh
+COPY scripts/fake-pi.sh ./scripts/fake-pi.sh
+COPY scripts/benchmark.sh ./scripts/benchmark.sh
+COPY scripts/install-smoke.sh ./scripts/install-smoke.sh
+RUN npm test && npm run typecheck && sh scripts/scenario.sh
+RUN useradd --create-home --uid 10001 agentctl && chown -R agentctl:agentctl /app
+USER agentctl

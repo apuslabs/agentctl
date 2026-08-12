@@ -1,0 +1,22 @@
+{
+  "name": "agentctl",
+  "version": "0.1.0",
+  "description": "Local, provider-aware coding agent launcher backed by Pi",
+  "type": "module",
+  "bin": { "agentctl": "dist/cli.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": { "node": ">=22.19" },
+  "license": "MIT"
+}
