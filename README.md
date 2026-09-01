@@ -15,27 +15,48 @@ command allowlist.
 Requires Node.js 22.19+ and npm. The local-source installer bootstraps Node when
 needed; clone or download the repository before running it.
 
-The remote one-line installer is intentionally not published until a release
-URL/domain exists. The intended form is `curl -fsSL https://RELEASE-DOMAIN/agentctl/install.sh | sh`;
-for now use `git clone ... && ./install.sh` (or run the script from a local source checkout).
+The one-line installer downloads the latest `main` source from GitHub, installs
+the package, and launches an interactive conversation:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/apuslabs/agentctl/main/install.sh | sh
+```
+
+To install without launching (for CI or unattended use), set
+`AGENTCTL_NO_LAUNCH=1`. You can also clone the repository and run the script
+locally.
 
 ```sh
 ./install.sh
-agentctl setup
 ```
 
+If `agentctl` is not found after installation, add the printed npm global bin
+directory to your `PATH`, then run `agentctl` to start a conversation. On first
+run it configures the provider and model as needed.
+
 Setup defaults to currently available anonymous OpenCode models and stores no
-credential. Choose OpenRouter to use a key created at
+credential. Choose OpenRouter when you already have a key created at
 <https://openrouter.ai/keys>; only then is the key stored with mode `0600`.
 Model catalogs are fetched at setup/runtime. Setup performs a minimal
 tool-capable provider validation unless `AGENTCTL_PROVIDER_VALIDATION=skip` is
 set for an offline fixture. A failed validation leaves the selected config on
 disk and reports the failure; it does not silently claim the provider works.
-Set `AGENTCTL_HOME` to move local state, or provide
+Set `AGENTCTL_HOME` to move local state. For CI or other unattended runs,
+provide
 `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, and `AGENTCTL_MODEL` for unattended
 setup.
 
 ## Use
+
+Start the normal interactive conversation with:
+
+```sh
+agentctl
+```
+
+## Advanced
+
+For non-interactive tasks and session management:
 
 ```sh
 agentctl run "inspect this repository and fix the failing tests"

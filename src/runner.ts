@@ -8,7 +8,8 @@ import { paths } from "./paths.js";
 import { appendSession } from "./store.js";
 
 export function buildPiArgs(provider: string, model: string, sessionDir: string, extension: string, systemPrompt: string, prompt: string, interactive: boolean, resume: boolean): string[] {
-  const args = ["--provider", provider, "--model", model, "--session-dir", sessionDir, "--extension", extension, "--append-system-prompt", systemPrompt];
+  const skill = fileURLToPath(new URL("../skills/official-agent-docs/SKILL.md", import.meta.url));
+  const args = ["--provider", provider, "--model", model, "--session-dir", sessionDir, "--extension", extension, "--skill", skill, "--append-system-prompt", systemPrompt];
   if (!interactive) args.push("-p", prompt); else if (resume) args.push("--continue");
   const thinking = process.env.AGENTCTL_PI_THINKING;
   if (thinking) args.push("--thinking", thinking);

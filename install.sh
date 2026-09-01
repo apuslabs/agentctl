@@ -13,10 +13,25 @@ if ! command -v node >/dev/null 2>&1 || [ "$(node -p 'Number(process.versions.no
 fi
 
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ ! -f "$repo_dir/install.sh" ] || [ ! -f "$repo_dir/package.json" ] || [ ! -f "$repo_dir/package-lock.json" ] || [ ! -f "$repo_dir/src/cli.ts" ]; then
+  command -v curl >/dev/null 2>&1 || { echo "curl is required for the remote installer" >&2; exit 1; }
+  tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/agentctl.XXXXXX")
+  trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
+  ref=${AGENTCTL_REF-main}
+  [ -n "$ref" ] || { echo "AGENTCTL_REF must not be empty" >&2; exit 1; }
+  curl -fsSL "https://github.com/apuslabs/agentctl/archive/$ref.tar.gz" | tar -xzf - -C "$tmp_dir"
+  repo_dir=$(find "$tmp_dir" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+fi
 cd "$repo_dir"
 npm ci --ignore-scripts
 npm run build
 npm install --global .
 global_bin=$(npm prefix --global)/bin
 case ":$PATH:" in *":$global_bin:"*) :;; *) echo "Add $global_bin to PATH";; esac
-echo "Installed agentctl. Run: $global_bin/agentctl setup"
+if [ "${AGENTCTL_NO_LAUNCH:-0}" = 1 ] || [ -n "${CI:-}" ] || [ ! -t 1 ] || [ ! -e /dev/tty ]; then
+  echo "Next step: agentctl"
+else
+  echo "agentctl is ready."
+  echo "Opening your assistant..."
+  exec "$global_bin/agentctl" </dev/tty >/dev/tty 2>/dev/tty
+fi
